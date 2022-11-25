@@ -6,6 +6,23 @@ cap = cv2.VideoCapture("traffic_small.mp4")
 modelWeights = "models/yolov5s.onnx"
 net = cv2.dnn.readNet(modelWeights)
 
+if (cap.isOpened() == False): 
+    print("Error reading video file")
+  
+# We need to set resolutions.
+# so, convert them from float to integer.
+frame_width = int(cap.get(3))
+frame_height = int(cap.get(4))
+   
+size = (frame_width, frame_height)
+   
+# Below VideoWriter object will create
+# a frame of above defined The output 
+# is stored in 'filename.avi' file.
+result = cv2.VideoWriter('filename.avi', 
+                         cv2.VideoWriter_fourcc(*'MJPG'),
+                         10, size)
+
 count =0
 while True:
 	ret,frame = cap.read()
@@ -22,8 +39,7 @@ while True:
 	mask = np.ones(frame.shape,dtype=np.uint8)
 	mask.fill(255)
 
-  
-	roi = frame[150:,:]
+	# roi = frame[150:,:]
 	roi_corners = np.array([[(0,150),(852,150),(852,480),(0,480)]], dtype=np.int32)
 	
 	# fill the ROI into the mask
@@ -34,7 +50,7 @@ while True:
 
 	# cv2.polylines(frame,[np.array(area,np.int32)],True,(15,220,10),6)
 	# Process image.
-	detections = pre_process(masked_image, net)
+	detections = pre_process(frame, net)
 	img = post_process(frame.copy(), detections)
 	
 	# img = cv2.bitwise_or(frame, img)
@@ -45,13 +61,17 @@ while True:
 
 	cv2.imshow('Output', img)
 
+	result.write(img)
+
 	
 	
 	
 	key=cv2.waitKey(10)
 	if key==27:
 		break
-	
+
+cap.release()
+cv2.destroyAllWindows()	
 
 # if __name__ == '__main__':
 # 	# Load class names.
